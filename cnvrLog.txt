@@ -111,3 +111,11 @@ E:331, 4: Module 'efl.elementary' has no 'shutdown' member (no-member)
 Your code has been rated at 8.25/10 (previous run: 7.28/10, +0.97)
 
 >>>at this point I think I need a consult before proceeding. Good news is it still runs!!
+
+meanwhile, I’ll go on.
+rashkin@rrLaptop:~/BLPython/apturl-elm$ ~/.local/bin/yapf --style google ./apturl-elm apturl-elm.new
+no apturl-elm.new was created so I guess there are no errors. Anyway there were none reported.
+Then, after many mostly “line too long errors”:
+rashkin@rrLaptop:~/BLPython/apturl-elm$ ~/.local/bin/flake8 apturl-elm
+rashkin@rrLaptop:~/BLPython/apturl-elm$
+Still runs!!

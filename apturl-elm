@@ -28,13 +28,16 @@ FILL_HORIZ = EVAS_HINT_FILL, 0.5
 ALIGN_CENTER = 0.5, 0.5
 
 # pylint: disable=too-many-instance-attributes
+
+
 class MainWin(StandardWindow):
     ''' instantiate window object '''
     def __init__(self, _app, package_name):
         self.package_name = package_name
 
         # create the main window
-        StandardWindow.__init__(self, "apturl-elm", "Bodhi Application Installer",
+        StandardWindow.__init__(self, "apturl-elm",
+                                "Bodhi Application Installer",
                                 autodel=True, size=(500, 225))
 
         self.callback_delete_request_add(lambda o: elementary.exit())
@@ -54,7 +57,8 @@ class MainWin(StandardWindow):
         # build the information details inwin object
         self.build_details_win()
 
-        # the flip object has the load screen on one side and the GUI on the other
+        # the flip object has the load screen on one
+        # side and the GUI on the other
         self.flip = Flip(self, size_hint_weight=EXPAND_BOTH,
                          size_hint_align=FILL_BOTH)
         self.flip.part_content_set("front", self.main_box)
@@ -79,7 +83,8 @@ class MainWin(StandardWindow):
         closebtn.callback_pressed_add(self.inner_win_hide)
         closebtn.show()
 
-        box = Box(self, size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        box = Box(self, size_hint_weight=EXPAND_BOTH,
+                  size_hint_align=FILL_BOTH)
         box.pack_end(self.update_term)
         box.pack_end(closebtn)
         box.show()
@@ -123,7 +128,8 @@ class MainWin(StandardWindow):
         self.status_label.show()
 
         # put all the built objects in a vertical box
-        box = Box(self, size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        box = Box(self, size_hint_weight=EXPAND_BOTH,
+                  size_hint_align=FILL_BOTH)
         box.pack_end(load_label)
         box.pack_end(wheel)
         box.pack_end(self.status_label)
@@ -141,7 +147,8 @@ class MainWin(StandardWindow):
 
         # build the label that shows the package's description
         self.current_description = Entry(self, editable=False, scrollable=True,
-                                         size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+                                         size_hint_weight=EXPAND_BOTH,
+                                         size_hint_align=FILL_BOTH)
         self.current_description.text = "Select a package for information"
         self.current_description.line_wrap_set(ELM_WRAP_WORD)
         self.current_description.show()
@@ -152,7 +159,8 @@ class MainWin(StandardWindow):
         self.des_frame.content = self.current_description
         self.des_frame.show()
 
-        self.icon = Icon(self, size_hint_weight=(0.25, 0.25), size_hint_align=FILL_BOTH)
+        self.icon = Icon(self, size_hint_weight=(0.25, 0.25),
+                         size_hint_align=FILL_BOTH)
         valid_icon = self.icon.standard_set(self.package_name)
         if not valid_icon:
             self.icon.standard_set("system-software-installer")
@@ -200,12 +208,14 @@ class MainWin(StandardWindow):
         ''' callback for install button pressed '''
         self.status_label.text = "<i>Installing package...</i>"
         self.flip.go(ELM_FLIP_ROTATE_YZ_CENTER_AXIS)
-        self.update_term.runCommand("apt-get -y install %s"%self.package_name, self.install_done)
+        self.update_term.runCommand("apt-get -y install %s" %
+                                    self.package_name, self.install_done)
 
     def set_package_info(self, package_desc):
         ''' method to display package information '''
         self.current_description.text = package_desc
-        self.label.text = "Would you like to install <b>%s</b>?" %self.package_name
+        self.label.text = "Would you like to install\
+                          <b>%s</b>?" % self.package_name
         self.des_frame.text = "Description:"
         valid_icon = self.icon.standard_set(self.package_name)
         if not valid_icon:
@@ -219,9 +229,11 @@ class MainWin(StandardWindow):
             self.flip.go(ELM_FLIP_ROTATE_YZ_CENTER_AXIS)
             self.label.text = "<b>Successful Package Installation!</b>"
             self.icon.standard_set("dialog-ok")
-            self.current_description.text = "Package %s has been successfully \
-                                            installed on your computer. You can \
-                                            close this window."%self.package_name
+            self.current_description.text = "Package %s has been\
+                                            successfully installed\
+                                            on your computer. You can \
+                                            close this window." % \
+                                            self.package_name
 
             self.install_button.text = "Info"
             self.install_button.callback_pressed_del(self.install_pressed)
@@ -229,15 +241,18 @@ class MainWin(StandardWindow):
         elif already:
             self.label.text = "<b>Package Already installed!</b>"
             self.current_description.text = "It looks like package %s is already \
-                                            installed on your computer."%self.package_name
+                                            installed on your computer." %\
+                                            self.package_name
             self.install_button.delete()
         elif notfound:
             self.label.text = "<b>Package Not found!</b>"
             self.icon.standard_set("dialog-error")
-            self.current_description.text = "Cannot locate package %s for installation. \
-                                            If you have not done so already, try \
-                                            refreshing your package sources using \
-                                            the button below."%self.package_name
+            self.current_description.text = "Cannot locate package %s for\
+                                            installation. If you have not\
+                                            done so already, try \
+                                            refreshing your package sources\
+                                            using the button below." %\
+                                            self.package_name
             self.install_button.text = "Refresh"
             self.install_button.callback_pressed_del(self.install_pressed)
             self.install_button.callback_pressed_add(self.refresh_pressed)
@@ -285,7 +300,8 @@ class AptUrl(object):
         if flippy:
             self.win.flip.go(ELM_FLIP_ROTATE_YZ_CENTER_AXIS)
 
-        self.win.update_term.run_cmd("apt-get update", self.refresh_packages_done)
+        self.win.update_term.run_cmd("apt-get update",
+                                     self.refresh_packages_done)
 
     def refresh_packages_done(self):
         ''' callback when refresh complete '''
@@ -314,7 +330,7 @@ if __name__ == "__main__":
     else:
         REFRESH = False
 
-    #Always force a refresh to help users
+    # Always force a refresh to help users
     REFRESH = True
 
     print(PACKAGE)
