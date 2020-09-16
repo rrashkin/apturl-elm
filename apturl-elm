@@ -1,9 +1,9 @@
-#!/usr/bin/python
-#apturl front end written in elementary
-#
-#Written by: Jeff Hoogland
-#Started: 05/07/2014
+''' apturl front end written in elementary '''
+# !/usr/bin/python
+# Written by: Jeff Hoogland
+# Started: 05/07/2014
 
+import sys
 from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL
 from efl import elementary
 from efl.elementary.window import StandardWindow
@@ -14,21 +14,12 @@ from efl.elementary.label import Label, ELM_WRAP_WORD
 from efl.elementary.progressbar import Progressbar
 from efl.elementary.icon import Icon
 from efl.elementary.innerwindow import InnerWindow
-from efl.elementary.entry import Entry, ELM_TEXT_FORMAT_PLAIN_UTF8
-from efl.elementary.flip import Flip, ELM_FLIP_ROTATE_X_CENTER_AXIS, \
-    ELM_FLIP_ROTATE_Y_CENTER_AXIS, ELM_FLIP_ROTATE_XZ_CENTER_AXIS, \
-    ELM_FLIP_ROTATE_YZ_CENTER_AXIS, ELM_FLIP_CUBE_LEFT, ELM_FLIP_CUBE_RIGHT, \
-    ELM_FLIP_CUBE_UP, ELM_FLIP_CUBE_DOWN, ELM_FLIP_PAGE_LEFT, \
-    ELM_FLIP_PAGE_RIGHT, ELM_FLIP_PAGE_UP, ELM_FLIP_PAGE_DOWN, \
-    ELM_FLIP_DIRECTION_UP, ELM_FLIP_DIRECTION_DOWN, \
-    ELM_FLIP_DIRECTION_LEFT, ELM_FLIP_DIRECTION_RIGHT, \
-    ELM_FLIP_INTERACTION_NONE, ELM_FLIP_INTERACTION_ROTATE, \
-    ELM_FLIP_INTERACTION_CUBE, ELM_FLIP_INTERACTION_PAGE
+from efl.elementary.entry import Entry
+from efl.elementary.flip import Flip, ELM_FLIP_ROTATE_YZ_CENTER_AXIS
 
 from elmextensions import EmbeddedTerminal
 
 import apt
-import sys
 
 EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
 EXPAND_HORIZ = EVAS_HINT_EXPAND, 0.0
@@ -36,16 +27,18 @@ FILL_BOTH = EVAS_HINT_FILL, EVAS_HINT_FILL
 FILL_HORIZ = EVAS_HINT_FILL, 0.5
 ALIGN_CENTER = 0.5, 0.5
 
+# pylint: disable=too-many-instance-attributes
 class MainWin(StandardWindow):
-    def __init__(self, app, packageName):
-        self.packageName = packageName
-        
+    ''' instantiate window object '''
+    def __init__(self, _app, package_name):
+        self.package_name = package_name
+
         # create the main window
         StandardWindow.__init__(self, "apturl-elm", "Bodhi Application Installer",
                                 autodel=True, size=(500, 225))
-        
+
         self.callback_delete_request_add(lambda o: elementary.exit())
-        self.app = app
+        self._app = _app
 
         icon = Icon(self)
         icon.size_hint_weight_set(EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
@@ -55,17 +48,17 @@ class MainWin(StandardWindow):
         self.icon_object_set(icon.object_get())
 
         # build the two main boxes
-        self.mainBox = self.buildMainBox()
-        self.loadBox = self.buildLoadBox()
-        
+        self.main_box = self.build_main_box()
+        self.load_box = self.build_load_box()
+
         # build the information details inwin object
-        self.buildDetailsWin()
+        self.build_details_win()
 
         # the flip object has the load screen on one side and the GUI on the other
         self.flip = Flip(self, size_hint_weight=EXPAND_BOTH,
                          size_hint_align=FILL_BOTH)
-        self.flip.part_content_set("front", self.mainBox)
-        self.flip.part_content_set("back", self.loadBox)
+        self.flip.part_content_set("front", self.main_box)
+        self.flip.part_content_set("back", self.load_box)
         self.resize_object_add(self.flip)
         self.flip.show()
 
@@ -74,38 +67,44 @@ class MainWin(StandardWindow):
         # show the window
         self.show()
 
-    def buildDetailsWin(self):
-        self.updateTerm = EmbeddedTerminal(self, size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-        self.updateTerm.show()
+    def build_details_win(self):
+        ''' window showing installation details '''
+        self.update_term = EmbeddedTerminal(self,
+                                            size_hint_weight=EXPAND_BOTH,
+                                            size_hint_align=FILL_BOTH)
+        self.update_term.show()
 
         closebtn = Button(self)
         closebtn.text_set("Done")
-        closebtn.callback_pressed_add(self.innerWinHide)
+        closebtn.callback_pressed_add(self.inner_win_hide)
         closebtn.show()
 
         box = Box(self, size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-        box.pack_end(self.updateTerm)
+        box.pack_end(self.update_term)
         box.pack_end(closebtn)
         box.show()
 
-        self.innerWin = InnerWindow(self, size_hint_weight=EXPAND_BOTH,
-                          size_hint_align=FILL_HORIZ)
-        self.innerWin.content_set(box)
+        self.inner_win = InnerWindow(self, size_hint_weight=EXPAND_BOTH,
+                                     size_hint_align=FILL_HORIZ)
+        self.inner_win.content_set(box)
 
-    def innerWinShow(self, obj=False):
-        self.innerWin.show()
-        self.innerWin.activate()
+    def inner_win_show(self):
+        ''' method to show interior window '''
+        self.inner_win.show()
+        self.inner_win.activate()
 
-    def innerWinHide(self, obj=False):
-        self.innerWin.hide()
+    def inner_win_hide(self):
+        ''' method to hide interior window '''
+        self.inner_win.hide()
 
-    def buildLoadBox(self):
+    def build_load_box(self):
+        ''' method to build the load box '''
         # build the load label
-        loadLable = Label(self, size_hint_weight=EXPAND_BOTH,
-                          size_hint_align=FILL_HORIZ)
-        loadLable.text = "<b>Processing</b>"
-        loadLable.show()
-        
+        load_label = Label(self, size_hint_weight=EXPAND_BOTH,
+                           size_hint_align=FILL_HORIZ)
+        load_label.text = "<b>Processing</b>"
+        load_label.show()
+
         # build the spinning wheel
         wheel = Progressbar(self, pulse_mode=True,
                             size_hint_weight=EXPAND_BOTH,
@@ -115,204 +114,217 @@ class MainWin(StandardWindow):
 
         detailsbtn = Button(self, style="anchor")
         detailsbtn.text_set("Details")
-        detailsbtn.callback_pressed_add(self.innerWinShow)
+        detailsbtn.callback_pressed_add(self.inner_win_show)
         detailsbtn.show()
 
         # build the status label
-        self.statusLabel = Label(self, size_hint_weight=EXPAND_BOTH,
-                                 size_hint_align=FILL_HORIZ)
-        self.statusLabel.show()
+        self.status_label = Label(self, size_hint_weight=EXPAND_BOTH,
+                                  size_hint_align=FILL_HORIZ)
+        self.status_label.show()
 
         # put all the built objects in a vertical box
         box = Box(self, size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-        box.pack_end(loadLable)
+        box.pack_end(load_label)
         box.pack_end(wheel)
-        box.pack_end(self.statusLabel)        
+        box.pack_end(self.status_label)
         box.pack_end(detailsbtn)
         box.show()
 
         return box
 
-    def buildMainBox(self):
+    def build_main_box(self):
+        ''' method to build the primary box '''
         # build our toolbar
         self.label = Label(self, size_hint_weight=EXPAND_HORIZ,
-                              size_hint_align=FILL_HORIZ)
+                           size_hint_align=FILL_HORIZ)
         self.label.show()
 
         # build the label that shows the package's description
-        self.currentDescription = Entry(self, editable=False, scrollable=True,
-                                        size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-        self.currentDescription.text = "Select a package for information"
-        self.currentDescription.line_wrap_set(ELM_WRAP_WORD)
-        self.currentDescription.show()
+        self.current_description = Entry(self, editable=False, scrollable=True,
+                                         size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        self.current_description.text = "Select a package for information"
+        self.current_description.line_wrap_set(ELM_WRAP_WORD)
+        self.current_description.show()
 
-        self.desFrame = Frame(self, size_hint_weight=EXPAND_BOTH,
-                              size_hint_align=FILL_BOTH)
-        self.desFrame.text = "Description:"
-        self.desFrame.content = self.currentDescription
-        self.desFrame.show()
-        
+        self.des_frame = Frame(self, size_hint_weight=EXPAND_BOTH,
+                               size_hint_align=FILL_BOTH)
+        self.des_frame.text = "Description:"
+        self.des_frame.content = self.current_description
+        self.des_frame.show()
+
         self.icon = Icon(self, size_hint_weight=(0.25, 0.25), size_hint_align=FILL_BOTH)
-        validIcon = self.icon.standard_set(self.packageName)
-        if not validIcon:
+        valid_icon = self.icon.standard_set(self.package_name)
+        if not valid_icon:
             self.icon.standard_set("system-software-installer")
         self.icon.show()
-        
-        self.desBox = Box(self, size_hint_weight=EXPAND_BOTH,
-                              size_hint_align=FILL_BOTH)
-        self.desBox.horizontal_set(True)
-        self.desBox.show()
-        
-        self.desBox.pack_end(self.icon)
-        self.desBox.pack_end(self.desFrame)
-        
-        self.buttonBox = Box(self, size_hint_weight=EXPAND_HORIZ,
-                              size_hint_align=FILL_HORIZ)
-        self.buttonBox.horizontal_set(True)
-        self.buttonBox.show()
 
-        self.installButton = Button(self, size_hint_weight=EXPAND_HORIZ,
+        self.des_box = Box(self, size_hint_weight=EXPAND_BOTH,
+                           size_hint_align=FILL_BOTH)
+        self.des_box.horizontal_set(True)
+        self.des_box.show()
+
+        self.des_box.pack_end(self.icon)
+        self.des_box.pack_end(self.des_frame)
+
+        self.button_box = Box(self, size_hint_weight=EXPAND_HORIZ,
                               size_hint_align=FILL_HORIZ)
-        self.installButton.text = "Install"
-        self.installButton.callback_pressed_add(self.installPressed)
-        self.installButton.show()
-        
-        self.cancelButton = Button(self, size_hint_weight=EXPAND_HORIZ,
-                              size_hint_align=FILL_HORIZ)
-        self.cancelButton.text = "Cancel"
-        self.cancelButton.callback_pressed_add(lambda o: elementary.exit())
-        self.cancelButton.show()
-        
-        self.buttonBox.pack_end(self.cancelButton)
-        self.buttonBox.pack_end(self.installButton)
+        self.button_box.horizontal_set(True)
+        self.button_box.show()
+
+        self.install_button = Button(self, size_hint_weight=EXPAND_HORIZ,
+                                     size_hint_align=FILL_HORIZ)
+        self.install_button.text = "Install"
+        self.install_button.callback_pressed_add(self.install_pressed)
+        self.install_button.show()
+
+        self.cancel_button = Button(self, size_hint_weight=EXPAND_HORIZ,
+                                    size_hint_align=FILL_HORIZ)
+        self.cancel_button.text = "Cancel"
+        self.cancel_button.callback_pressed_add(lambda o: elementary.exit())
+        self.cancel_button.show()
+
+        self.button_box.pack_end(self.cancel_button)
+        self.button_box.pack_end(self.install_button)
 
         # add all of our objects to the box
         box = Box(self, size_hint_weight=EXPAND_HORIZ,
-                           size_hint_align=FILL_HORIZ)
+                  size_hint_align=FILL_HORIZ)
         box.pack_end(self.label)
-        box.pack_end(self.desBox)
-        box.pack_end(self.buttonBox)
+        box.pack_end(self.des_box)
+        box.pack_end(self.button_box)
         box.show()
 
         return box
-        
-    def installPressed(self, obj):
-        self.statusLabel.text = "<i>Installing package...</i>"
+
+    def install_pressed(self):
+        ''' callback for install button pressed '''
+        self.status_label.text = "<i>Installing package...</i>"
         self.flip.go(ELM_FLIP_ROTATE_YZ_CENTER_AXIS)
-        self.updateTerm.runCommand("apt-get -y install %s"%self.packageName, self.installDone)
-    
-    def setPackageInfo(self, packageDes):
-        self.currentDescription.text = packageDes
-        self.label.text = "Would you like to install <b>%s</b>?" %self.packageName
-        self.desFrame.text = "Description:"
-        validIcon = self.icon.standard_set(self.packageName)
-        if not validIcon:
+        self.update_term.runCommand("apt-get -y install %s"%self.package_name, self.install_done)
+
+    def set_package_info(self, package_desc):
+        ''' method to display package information '''
+        self.current_description.text = package_desc
+        self.label.text = "Would you like to install <b>%s</b>?" %self.package_name
+        self.des_frame.text = "Description:"
+        valid_icon = self.icon.standard_set(self.package_name)
+        if not valid_icon:
             self.icon.standard_set("system-software-installer")
-    
-    def installDone(self, already=False, notfound=False):
-        self.desFrame.text = ""
-        
+
+    def install_done(self, already=False, notfound=False):
+        ''' cleanup after installation complete '''
+        self.des_frame.text = ""
+
         if not already and not notfound:
             self.flip.go(ELM_FLIP_ROTATE_YZ_CENTER_AXIS)
             self.label.text = "<b>Successful Package Installation!</b>"
             self.icon.standard_set("dialog-ok")
-            self.currentDescription.text = "Package %s has been successfully installed on your computer. You can close this window."%self.packageName
-            
-            self.installButton.text = "Info"
-            self.installButton.callback_pressed_del(self.installPressed)
-            self.installButton.callback_pressed_add(self.innerWinShow)
+            self.current_description.text = "Package %s has been successfully \
+                                            installed on your computer. You can \
+                                            close this window."%self.package_name
+
+            self.install_button.text = "Info"
+            self.install_button.callback_pressed_del(self.install_pressed)
+            self.install_button.callback_pressed_add(self.inner_win_show)
         elif already:
             self.label.text = "<b>Package Already installed!</b>"
-            self.currentDescription.text = "It looks like package %s is already installed on your computer."%self.packageName
-            self.installButton.delete()
+            self.current_description.text = "It looks like package %s is already \
+                                            installed on your computer."%self.package_name
+            self.install_button.delete()
         elif notfound:
             self.label.text = "<b>Package Not found!</b>"
             self.icon.standard_set("dialog-error")
-            self.currentDescription.text = "Cannot locate package %s for installation. If you have not done so already, try refreshing your package sources using the button below."%self.packageName
-            self.installButton.text = "Refresh"
-            self.installButton.callback_pressed_del(self.installPressed)
-            self.installButton.callback_pressed_add(self.refreshPressed)
-        
-        self.cancelButton.text = "Close"
+            self.current_description.text = "Cannot locate package %s for installation. \
+                                            If you have not done so already, try \
+                                            refreshing your package sources using \
+                                            the button below."%self.package_name
+            self.install_button.text = "Refresh"
+            self.install_button.callback_pressed_del(self.install_pressed)
+            self.install_button.callback_pressed_add(self.refresh_pressed)
 
-    def refreshPressed(self, bnt):
-        self.cancelButton.text = "Cancel"
-        self.installButton.text = "Install"
-        self.installButton.callback_pressed_add(self.installPressed)
-        self.installButton.callback_pressed_del(self.refreshPressed)
-        self.app.refreshPackages()
+        self.cancel_button.text = "Close"
+
+    def refresh_pressed(self):
+        ''' callback after refresh button pressed '''
+        self.cancel_button.text = "Cancel"
+        self.install_button.text = "Install"
+        self.install_button.callback_pressed_add(self.install_pressed)
+        self.install_button.callback_pressed_del(self.refresh_pressed)
+        self._app.refresh_packages()
 
 
-class apturl(object):
-    def __init__(self, packageName):
-        self.packageName = packageName
-        
-        self.packagesToUpdate = {}
+class AptUrl(object):
+    ''' main class for installation wrapper '''
+    def __init__(self, package_name):
+        self.package_name = package_name
+
+        self.packages_to_update = {}
         self.apt = apt.cache.Cache()
 
-        self.win = MainWin(self, self.packageName)
-        
-        self.packageObj = None
-        self.packageVersion = None
-        
-    def setPackageInfo(self):
-        if self.packageName in self.apt:
-            self.packageObj = self.apt[self.packageName]
-            self.packageVersion = self.apt[self.packageName].versions[0]
-            packageDes = self.apt[self.packageName].versions[0].description
-            if not self.packageObj.is_installed:
-                self.win.setPackageInfo(packageDes)
-            else:
-                self.win.installDone(already=True)
-        else:
-            self.win.installDone(notfound=True)
+        self.win = MainWin(self, self.package_name)
 
-    def refreshPackages(self, flippy=True):
-        self.win.statusLabel.text = "<i>Refreshing package lists...</i>"
+        self.package_object = None
+        self.package_version = None
+
+    def set_package_info(self):
+        ''' build package info '''
+        if self.package_name in self.apt:
+            self.package_object = self.apt[self.package_name]
+            self.package_version = self.apt[self.package_name].versions[0]
+            package_desc = self.apt[self.package_name].versions[0].description
+            if not self.package_object.is_installed:
+                self.win.set_package_info(package_desc)
+            else:
+                self.win.install_done(already=True)
+        else:
+            self.win.install_done(notfound=True)
+
+    def refresh_packages(self, flippy=True):
+        ''' refresh package lists '''
+        self.win.status_label.text = "<i>Refreshing package lists...</i>"
         if flippy:
             self.win.flip.go(ELM_FLIP_ROTATE_YZ_CENTER_AXIS)
 
-        self.win.updateTerm.runCommand("apt-get update", self.refreshPackagesDone)
+        self.win.update_term.run_cmd("apt-get update", self.refresh_packages_done)
 
-    def refreshPackagesDone(self):
+    def refresh_packages_done(self):
+        ''' callback when refresh complete '''
         self.win.flip.go(ELM_FLIP_ROTATE_YZ_CENTER_AXIS)
         self.apt.open()
-        self.setPackageInfo()
+        self.set_package_info()
 
 
 if __name__ == "__main__":
     elementary.init()
 
-    args = sys.argv[1]
-    print args
-    
-    package = args.split(":")[1]
-    
-    if package.startswith("///"):
-        package = package[3:]
-    
-    if "?" in package:
-        refresh = package.split("?")[1]
-        package = package.split("?")[0]
-        
-        if "yep" in refresh:
-            refresh = True
-        else:
-            refresh = False
+    ARGS = sys.argv[1]
+    print(ARGS)
+
+    PACKAGE = ARGS.split(":")[1]
+
+    if PACKAGE.startswith("///"):
+        PACKAGE = PACKAGE[3:]
+
+    if "?" in PACKAGE:
+        REFRESH = PACKAGE.split("?")[1]
+        PACKAGE = PACKAGE.split("?")[0]
+
+        REFRESH = bool("yep" in REFRESH)
+
     else:
-        refresh = False
-        
+        REFRESH = False
+
     #Always force a refresh to help users
-    refresh = True
-    
-    print package
-    print refresh
-    
-    app = apturl(package)
-    if refresh:
-        app.refreshPackages()
+    REFRESH = True
+
+    print(PACKAGE)
+    print(REFRESH)
+
+    APP = AptUrl(PACKAGE)
+    if REFRESH:
+        APP.refresh_packages()
     else:
-        app.setPackageInfo()
+        APP.set_package_info()
 
     elementary.run()
 

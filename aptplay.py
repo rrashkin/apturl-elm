@@ -1,15 +1,15 @@
-#A file for testing the python apt module
+''' A file for testing the python apt module'''
 
+# import sys
 import apt
-import sys
 
-pkg_name = "firefx"
+PACKAGE_NAME = "chromium-browser"
 
-cache = apt.cache.Cache()
-#cache.update()
+CACHE = apt.cache.Cache()
+# CACHE.update()
 
-if pkg_name in cache:
-    pkg = cache[pkg_name]
-    print(pkg.versions[0].description)
+if PACKAGE_NAME in CACHE:
+    PACKAGE = CACHE[PACKAGE_NAME]
+    print((PACKAGE.versions[0].description))
 else:
-    print("Package %s not found" % pkg_name)
+    print(("Package %s not found" % PACKAGE_NAME))

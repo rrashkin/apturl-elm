@@ -1,0 +1,113 @@
+After cloning JeffHoogland/apturl-elm, I verified that, as is, it runs in Python2.x.  After changing “firefx” to “chromium-browser” in aptplay.py that ran.  apturl-elm aborts at sys.argv[1]. After ylee consult, “python apturl-elm apt:hexchat” works fine.  
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ 2to3 -w aptplay.py
+RefactoringTool: Skipping optional fixer: buffer
+RefactoringTool: Skipping optional fixer: idioms
+RefactoringTool: Skipping optional fixer: set_literal
+RefactoringTool: Skipping optional fixer: ws_comma
+RefactoringTool: Refactored aptplay.py
+--- aptplay.py	(original)
++++ aptplay.py	(refactored)
+@@ -10,6 +10,6 @@
+
+ if pkg_name in cache:
+     pkg = cache[pkg_name]
+-    print(pkg.versions[0].description)
++    print((pkg.versions[0].description))
+ else:
+-    print("Package %s not found" % pkg_name)
++    print(("Package %s not found" % pkg_name))
+RefactoringTool: Files that were modified:
+RefactoringTool: aptplay.py
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ python3 aptplay.py
+An open-source browser project that aims to build a safer, faster, and more stable way for all Internet users to experience the web.
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ 2to3 -w -d aptplay.py
+RefactoringTool: Skipping optional fixer: buffer
+RefactoringTool: Skipping optional fixer: idioms
+RefactoringTool: Skipping optional fixer: set_literal
+RefactoringTool: Skipping optional fixer: ws_comma
+RefactoringTool: No files need to be modified.
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ pylint3 aptplay.py
+No config file found, using default configuration
+
+-------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 8.75/10, +1.25)
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ python3 aptplay.py
+An open-source browser project that aims to build a safer, faster, and more stable way for all Internet users to experience the web.
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ ~/.local/bin/yapf --style google aptplay.py > aptplay.py.new
+rashkin@rrLaptop:~/BLPython/apturl-elm$ rm aptplay.py
+rashkin@rrLaptop:~/BLPython/apturl-elm$ mv aptplay.py.new aptplay.py
+rashkin@rrLaptop:~/BLPython/apturl-elm$ ~/.local/bin/flake8 aptplay.py
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ 2to3 -w apturl-elm
+RefactoringTool: Skipping optional fixer: buffer
+RefactoringTool: Skipping optional fixer: idioms
+RefactoringTool: Skipping optional fixer: set_literal
+RefactoringTool: Skipping optional fixer: ws_comma
+RefactoringTool: Refactored apturl-elm
+--- apturl-elm	(original)
++++ apturl-elm	(refactored)
+@@ -284,7 +284,7 @@
+     elementary.init()
+
+     args = sys.argv[1]
+-    print args
++    print(args)
+
+     package = args.split(":")[1]
+
+@@ -305,8 +305,8 @@
+     #Always force a refresh to help users
+     refresh = True
+
+-    print package
+-    print refresh
++    print(package)
++    print(refresh)
+
+     app = apturl(package)
+     if refresh:
+RefactoringTool: Files that were modified:
+RefactoringTool: apturl-elm
+rashkin@rrLaptop:~/BLPython/apturl-elm$ 2to3 -w -d apturl-elm
+RefactoringTool: Skipping optional fixer: buffer
+RefactoringTool: Skipping optional fixer: idioms
+RefactoringTool: Skipping optional fixer: set_literal
+RefactoringTool: Skipping optional fixer: ws_comma
+RefactoringTool: No files need to be modified.
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ python3 apturl-elm apt:hexchat
+apt:hexchat
+hexchat
+True
+Traceback (most recent call last):
+  File "apturl-elm", line 313, in <module>
+    app.refreshPackages()
+  File "apturl-elm", line 275, in refreshPackages
+    self.win.updateTerm.runCommand("apt-get update", self.refreshPackagesDone)
+AttributeError: 'EmbeddedTerminal' object has no attribute 'runCommand'
+>>>changed runCommand to run_cmd   success
+
+rashkin@rrLaptop:~/BLPython/apturl-elm$ pylint3 apturl-elm
+…. many iterations later …
+rashkin@rrLaptop:~/BLPython/apturl-elm$ pylint3 apturl-elm
+No config file found, using default configuration
+************* Module apturl-elm
+C:  1, 0: Module name "apturl-elm" doesn't conform to snake_case naming style (invalid-name)
+E:  7, 0: No name 'EVAS_HINT_EXPAND' in module 'efl.evas' (no-name-in-module)
+E:  7, 0: No name 'EVAS_HINT_FILL' in module 'efl.evas' (no-name-in-module)
+E: 40,51: Module 'efl.elementary' has no 'exit' member (no-member)
+E:183,58: Module 'efl.elementary' has no 'exit' member (no-member)
+E:298, 4: Module 'efl.elementary' has no 'init' member (no-member)
+E:329, 4: Module 'efl.elementary' has no 'run' member (no-member)
+E:331, 4: Module 'efl.elementary' has no 'shutdown' member (no-member)
+
+------------------------------------------------------------------
+Your code has been rated at 8.25/10 (previous run: 7.28/10, +0.97)
+
+>>>at this point I think I need a consult before proceeding. Good news is it still runs!!
